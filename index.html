@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f0e8" />
+    <title>Good Measure — Calculator</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+      :root {
+        color-scheme: light;
+        --paper: #f5f0e8;
+        --ink: #1d1d1b;
+        --pink: #ff8fb1;
+        --yellow: #ffd84d;
+        --blue: #a9d6f5;
+        --green: #a8df9c;
+        --shadow: 5px 5px 0 var(--ink);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow-x: hidden;
+        background-color: var(--paper);
+        background-image: radial-gradient(#1d1d1b 0.8px, transparent 0.8px);
+        background-position: 10px 10px;
+        background-size: 22px 22px;
+        color: var(--ink);
+        font-family: "Space Grotesk", "Arial", sans-serif;
+      }
+
+      button {
+        color: inherit;
+        font: inherit;
+      }
+
+      .page {
+        width: min(100% - 40px, 470px);
+        padding: 32px 0;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 2px 16px;
+      }
+
+      .brand-name {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 25px;
+        height: 25px;
+        place-items: center;
+        border: 2px solid var(--ink);
+        background: var(--yellow);
+        font-size: 14px;
+        line-height: 1;
+        transform: rotate(-5deg);
+      }
+
+      .brand-note {
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .calculator {
+        padding: 20px;
+        border: 3px solid var(--ink);
+        background: #fffdf8;
+        box-shadow: 9px 9px 0 var(--ink);
+      }
+
+      .screen {
+        min-height: 132px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 17px;
+        padding: 15px 16px 13px;
+        overflow: hidden;
+        border: 3px solid var(--ink);
+        background: var(--blue);
+        box-shadow: inset 0 0 0 2px rgb(255 255 255 / 25%);
+      }
+
+      .screen-label {
+        align-self: flex-start;
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .expression {
+        max-width: 100%;
+        min-height: 18px;
+        overflow: hidden;
+        color: rgb(29 29 27 / 62%);
+        font-family: "DM Mono", monospace;
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .display {
+        width: 100%;
+        overflow: hidden;
+        font-family: "DM Mono", monospace;
+        font-size: clamp(38px, 11vw, 56px);
+        font-weight: 500;
+        letter-spacing: -0.075em;
+        line-height: 1.05;
+        text-align: right;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .keys {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .key {
+        min-width: 0;
+        height: 58px;
+        border: 2px solid var(--ink);
+        background: #fffdf8;
+        box-shadow: 3px 3px 0 var(--ink);
+        cursor: pointer;
+        font-size: 20px;
+        font-weight: 700;
+        transition:
+          transform 90ms ease,
+          box-shadow 90ms ease,
+          background-color 120ms ease;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .key:hover {
+        background: #f2ede4;
+      }
+
+      .key:active,
+      .key.pressed {
+        box-shadow: 0 0 0 var(--ink);
+        transform: translate(3px, 3px);
+      }
+
+      .key:focus-visible {
+        outline: 3px solid var(--ink);
+        outline-offset: 5px;
+      }
+
+      .key.utility {
+        background: var(--yellow);
+      }
+
+      .key.operator {
+        background: var(--pink);
+        font-size: 23px;
+      }
+
+      .key.equals {
+        background: var(--green);
+        font-size: 24px;
+      }
+
+      .key.zero {
+        grid-column: span 2;
+        text-align: left;
+        padding-left: 22px;
+      }
+
+      .key.clear {
+        font-size: 15px;
+        letter-spacing: 0.04em;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        margin: 18px 2px 0;
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+
+      .footer strong {
+        font-family: "Space Grotesk", "Arial", sans-serif;
+        font-size: 11px;
+      }
+
+      @media (max-width: 380px) {
+        .page {
+          width: min(100% - 32px, 470px);
+        }
+
+        .calculator {
+          padding: 15px;
+        }
+
+        .key {
+          height: 54px;
+        }
+
+        .keys {
+          gap: 8px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="brand">
+        <div class="brand-name"><span class="brand-mark" aria-hidden="true">+</span> Good Measure</div>
+        <span class="brand-note">No. 001 / Everyday math</span>
+      </header>
+
+      <section class="calculator" aria-label="Calculator">
+        <div class="screen" aria-live="polite" aria-atomic="true">
+          <span class="screen-label">Your total</span>
+          <div class="expression" id="expression"></div>
+          <output class="display" id="display" aria-label="Display">0</output>
+        </div>
+
+        <div class="keys" aria-label="Calculator keys">
+          <button class="key utility clear" type="button" data-action="clear" aria-label="All clear">AC</button>
+          <button class="key utility" type="button" data-action="sign" aria-label="Change sign">+/−</button>
+          <button class="key utility" type="button" data-action="percent" aria-label="Percent">%</button>
+          <button class="key operator" type="button" data-operator="/" aria-label="Divide">÷</button>
+
+          <button class="key" type="button" data-digit="7">7</button>
+          <button class="key" type="button" data-digit="8">8</button>
+          <button class="key" type="button" data-digit="9">9</button>
+          <button class="key operator" type="button" data-operator="*" aria-label="Multiply">×</button>
+
+          <button class="key" type="button" data-digit="4">4</button>
+          <button class="key" type="button" data-digit="5">5</button>
+          <button class="key" type="button" data-digit="6">6</button>
+          <button class="key operator" type="button" data-operator="-" aria-label="Subtract">−</button>
+
+          <button class="key" type="button" data-digit="1">1</button>
+          <button class="key" type="button" data-digit="2">2</button>
+          <button class="key" type="button" data-digit="3">3</button>
+          <button class="key operator" type="button" data-operator="+" aria-label="Add">+</button>
+
+          <button class="key zero" type="button" data-digit="0">0</button>
+          <button class="key" type="button" data-action="decimal" aria-label="Decimal point">.</button>
+          <button class="key equals" type="button" data-action="equals" aria-label="Equals">=</button>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span><strong>Small buttons.</strong> Big brain energy.</span>
+        <span>⌨ Keyboard ready</span>
+      </footer>
+    </main>
+
+    <script>
+      const display = document.querySelector("#display");
+      const expression = document.querySelector("#expression");
+      const keys = document.querySelector(".keys");
+
+      let current = "0";
+      let storedValue = null;
+      let pendingOperator = null;
+      let shouldResetDisplay = false;
+      let justCalculated = false;
+
+      const operatorSymbols = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+
+      function render() {
+        display.textContent = current;
+      }
+
+      function formatResult(value) {
+        if (!Number.isFinite(value)) return "Error";
+        const rounded = Number.parseFloat(value.toPrecision(11));
+        return String(Object.is(rounded, -0) ? 0 : rounded);
+      }
+
+      function calculate(left, right, operator) {
+        switch (operator) {
+          case "+": return left + right;
+          case "-": return left - right;
+          case "*": return left * right;
+          case "/": return right === 0 ? NaN : left / right;
+          default: return right;
+        }
+      }
+
+      function inputDigit(digit) {
+        if (current === "Error" || shouldResetDisplay || justCalculated) {
+          current = digit;
+          shouldResetDisplay = false;
+          justCalculated = false;
+        } else if (current.replace("-", "").replace(".", "").length < 12) {
+          current = current === "0" ? digit : current + digit;
+        }
+        render();
+      }
+
+      function chooseOperator(operator) {
+        if (current === "Error") return;
+        const value = Number(current);
+
+        if (pendingOperator && !shouldResetDisplay) {
+          const result = calculate(storedValue, value, pendingOperator);
+          current = formatResult(result);
+          render();
+          storedValue = current === "Error" ? null : Number(current);
+        } else {
+          storedValue = value;
+        }
+
+        pendingOperator = operator;
+        shouldResetDisplay = true;
+        justCalculated = false;
+        expression.textContent = `${current} ${operatorSymbols[operator]}`;
+      }
+
+      function equals() {
+        if (pendingOperator === null || storedValue === null || current === "Error") return;
+        const right = shouldResetDisplay ? storedValue : Number(current);
+        const left = storedValue;
+        const operator = pendingOperator;
+        const result = calculate(left, right, operator);
+
+        expression.textContent = `${formatResult(left)} ${operatorSymbols[operator]} ${formatResult(right)} =`;
+        current = formatResult(result);
+        storedValue = null;
+        pendingOperator = null;
+        shouldResetDisplay = true;
+        justCalculated = true;
+        render();
+      }
+
+      function clear() {
+        current = "0";
+        storedValue = null;
+        pendingOperator = null;
+        shouldResetDisplay = false;
+        justCalculated = false;
+        expression.textContent = "";
+        render();
+      }
+
+      function backspace() {
+        if (current === "Error" || shouldResetDisplay || justCalculated) {
+          current = "0";
+          shouldResetDisplay = false;
+          justCalculated = false;
+        } else {
+          current = current.length > 1 ? current.slice(0, -1) : "0";
+          if (current === "-") current = "0";
+        }
+        render();
+      }
+
+      function handleAction(action) {
+        switch (action) {
+          case "clear": clear(); break;
+          case "equals": equals(); break;
+          case "decimal":
+            if (current === "Error" || shouldResetDisplay || justCalculated) {
+              current = "0.";
+              shouldResetDisplay = false;
+              justCalculated = false;
+            } else if (!current.includes(".")) {
+              current += ".";
+            }
+            render();
+            break;
+          case "sign":
+            if (current !== "Error" && Number(current) !== 0) {
+              current = current.startsWith("-") ? current.slice(1) : `-${current}`;
+              render();
+            }
+            break;
+          case "percent":
+            if (current !== "Error") {
+              current = formatResult(Number(current) / 100);
+              shouldResetDisplay = false;
+              justCalculated = false;
+              render();
+            }
+            break;
+        }
+      }
+
+      keys.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) return;
+
+        if (button.dataset.digit !== undefined) inputDigit(button.dataset.digit);
+        else if (button.dataset.operator) chooseOperator(button.dataset.operator);
+        else if (button.dataset.action) handleAction(button.dataset.action);
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (/^[0-9]$/.test(event.key)) inputDigit(event.key);
+        else if (event.key === ".") handleAction("decimal");
+        else if (["+", "-", "*", "/"].includes(event.key)) chooseOperator(event.key);
+        else if (event.key === "Enter" || event.key === "=") {
+          event.preventDefault();
+          equals();
+        } else if (event.key === "Escape") clear();
+        else if (event.key === "Backspace") {
+          event.preventDefault();
+          backspace();
+        } else if (event.key === "%") handleAction("percent");
+      });
+    </script>
+  </body>
+</html>
